@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle-like Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-rows: auto repeat(6, 1fr);
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .input-row {
+            grid-column: span 5; /* Span across all columns */
+        }
+
+        .box {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #ccc;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            border-radius: 5px;
+        }
+
+        .submit-button {
+            margin-bottom: 20px; /* Adds space below the submit button */
+        }
+
+        .input-box {
+            width: 300px;
+            height: 60px;
+            font-size: 24px;
+            text-align: center;
+            border-radius: 5px;
+            border: 2px solid #ccc;
+            margin-bottom: 20px; /* Adds space below the input box */
+        }
+
+        .correct {
+            background-color: #6aaa64; /* Green */
+        }
+
+        .present {
+            background-color: #c9b458; /* Yellow */
+        }
+
+        .absent {
+            background-color: #787c7e; /* Gray */
+        }
+    </style>
+
+</head>
+<script>
+    const grid = document.getElementById("grid");
+
+    // Creates empty boxes in the grid
+    for (let i = 0; i < 6; i++) {
+        for (let j = 0; j < 5; j++) {
+            const box = document.createElement("div");
+            box.classList.add("box");
+            grid.appendChild(box);
+        }
+    }
+
+    async function submitGuess() {
+        const inputBox = document.querySelector('.input-box');
+        const guess = inputBox.value;
+
+        if (guess.length !== 5) {
+            alert("Please enter exactly 5 letters!");
+            return;
+        }
+
+        // Submit the guess to the server
+        try {
+            clearError();
+            resetAllBoxes();
+
+            const response = await fetch('/submit-guess', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ guess: guess })
+            });
+
+            if (!response.ok) {
+                displayError("Server error"); // Call function to display errors
+                throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+
+            if (data.status === "error") {
+                displayError(data.message); // Call function to display errors
+            }
+            else {
+                renderGuess(data);
+            }
+
+            // Clear the input box after submission
+            inputBox.value = '';
+        } catch (error) {
+            console.error('There was a problem with the fetch operation:', error);
+        }
+    }
+
+    function resetAllBoxes()
+    {
+        const boxes = document.querySelectorAll('.box');
+        for (let i=0; i<30; ++i)
+        {
+            boxes[i].innerText = ""
+            boxes[i].classList.remove('correct');
+            boxes[i].classList.remove('present');
+            boxes[i].classList.remove('absent');
+        }
+    }
+
+    function renderGuess(data) {
+        const boxes = document.querySelectorAll('.box');
+
+        // Find the first empty row and fill it with the user's guess
+        box_id = 0
+
+        for (let i=0; i<6; ++i)
+        {
+            word = data.results[i].word
+            if (word != "")
+            {
+                for (let j=0; j<5; ++j)
+                {
+                    boxes[box_id].innerText = word[j]
+                    state = data.results[i].result[j]
+                    if (state === "Green") {
+                        boxes[box_id].classList.add('correct');
+                    } else if (state === "Yellow") {
+                        boxes[box_id].classList.add('present');
+                    } else {
+                        boxes[box_id].classList.add('absent');
+                    }
+                    box_id++;
+                }
+            }
+        }
+    }
+
+    function displayError(message) {
+        const errorDiv = document.getElementById('error-message'); // Get the error message div
+        errorDiv.innerText = message; // Set the error message text
+        errorDiv.style.display = 'block'; // Make error message visible
+    }
+
+    function clearError() {
+        const errorDiv = document.getElementById('error-message'); // Get the error message div
+        errorDiv.innerText = ''; // Set the error message text
+        errorDiv.style.display = 'none'; // Make error message visible
+    }
+
+</script>
+<body>
+
+<div id="error-message" style="color: red; display: none;"></div>
+
+<input type="guess" class="input-box" placeholder="Enter your guess" maxlength="5" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '')">
+
+<button class="submit-button" onclick="submitGuess()">Submit</button>
+
+<div class="grid">
+
+    <!-- Row 1 -->
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+
+    <!-- Row 2 -->
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+
+    <!-- Row 3 -->
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+
+    <!-- Row 4 -->
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+
+    <!-- Row 5 -->
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+
+    <!-- Row 6 -->
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+</div>
+
+</body>
+</html>
