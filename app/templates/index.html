@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wordle-like Game</title>
+    <title>All-Word Solver with same word</title>
     <style>
         body {
             display: flex;
@@ -99,7 +99,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ guess: guess })
+                body: JSON.stringify({ word: guess })
             });
 
             if (!response.ok) {
@@ -113,7 +113,7 @@
                 displayError(data.message); // Call function to display errors
             }
             else {
-                renderGuess(data);
+                renderSolution(data);
             }
 
             // Clear the input box after submission
@@ -133,9 +133,14 @@
             boxes[i].classList.remove('present');
             boxes[i].classList.remove('absent');
         }
+        boxes[0].innerText = "C"
+        boxes[1].innerText = "L"
+        boxes[2].innerText = "A"
+        boxes[3].innerText = "M"
+        boxes[4].innerText = "P"
     }
 
-    function renderGuess(data) {
+    function renderSolution(data) {
         const boxes = document.querySelectorAll('.box');
 
         // Find the first empty row and fill it with the user's guess
@@ -172,26 +177,26 @@
     function clearError() {
         const errorDiv = document.getElementById('error-message'); // Get the error message div
         errorDiv.innerText = ''; // Set the error message text
-        errorDiv.style.display = 'none'; // Make error message visible
+        errorDiv.style.display = 'block'; // Make error message visible
     }
 
 </script>
 <body>
 
-<div id="error-message" style="color: red; display: none;"></div>
+<input type="word" class="input-box" placeholder="Enter your word" maxlength="5" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '')">
 
-<input type="guess" class="input-box" placeholder="Enter your guess" maxlength="5" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '')">
+<div id="error-message" style="color: red; display: block;"></div>
 
 <button class="submit-button" onclick="submitGuess()">Submit</button>
 
 <div class="grid">
 
     <!-- Row 1 -->
-    <div class="box"></div>
-    <div class="box"></div>
-    <div class="box"></div>
-    <div class="box"></div>
-    <div class="box"></div>
+    <div class="box">C</div>
+    <div class="box">L</div>
+    <div class="box">A</div>
+    <div class="box">M</div>
+    <div class="box">P</div>
 
     <!-- Row 2 -->
     <div class="box"></div>
@@ -228,6 +233,11 @@
     <div class="box"></div>
     <div class="box"></div>
 </div>
+
+<footer>
+    <p><small>Average = 3.697</small></p>
+    <p><small>© 2025 Vincent. All rights reserved.</small></p>
+</footer>
 
 </body>
 </html>

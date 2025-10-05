@@ -1,12 +1,17 @@
 import os
 import csv
+import logging
 from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
+solve = 'clamp'
+
+logging.basicConfig(level=logging.INFO)
+
 
 def load_data():
-    file_path = 'data/climb.txt'
+    file_path = f"data/{solve}.txt"
     with open(file_path, 'r', newline='') as file:
         reader = csv.reader(file, delimiter='\t')
 
@@ -14,6 +19,9 @@ def load_data():
         for row in reader:
             word_list.append(row[3])
             word_dict[f"{row[0]}_{row[1]}_{row[2]}"] = row[3]
+            
+    distinct = list(set(word_list))
+    logging.info(f"{len(word_list)}/{len(distinct)} entries loaded")
 
 
 word_list = []
@@ -30,8 +38,17 @@ def index():
 def submit_guess():
     # Get the JSON data from the request
     data = request.get_json()
-    guess = data.get('guess', '').lower()
+    guess = data.get('word', '').lower()
 
+    logging.info(f"Request {guess}")
+    
+    try:
+        return handle_request(guess)
+    except:
+        logging.exception(f"Cannot handle {guess}")
+        return jsonify({"status": "error", "message": "server error (unknown exception)"})
+
+def handle_request(guess: str):
     # Failed to load word list
     if not word_list:
         return jsonify({"status": "error", "message": "server error (cannot read data)"})
@@ -43,9 +60,8 @@ def submit_guess():
         return jsonify({"status": "error", "message": error_msg})
 
     results = []
-    next = 'climb'
+    word_str = next = solve
     round = 6
-    word_str = 'climb'
 
     while next:
         next, word_str, json_output = determine(next, guess, word_str, round)
